@@ -1,16 +1,132 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
+import { Plus, Search, BookOpen, Globe } from 'lucide-react';
+import { useRecipes } from '@/hooks/useRecipes';
+import { Recipe, CATEGORIES, Category, categoryColors } from '@/data/types';
+import RecipeCard from '@/components/RecipeCard';
+import RecipeDetail from '@/components/RecipeDetail';
+import RecipeFormModal from '@/components/RecipeFormModal';
+import WorldMap from '@/components/WorldMap';
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+type View = 'dashboard' | 'map';
+
+export default function Index() {
+  const { filtered, addRecipe, updateRecipe, deleteRecipe, search, setSearch, categoryFilter, setCategoryFilter, stats } = useRecipes();
+  const [view, setView] = useState<View>('dashboard');
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [formRecipe, setFormRecipe] = useState<Recipe | null | undefined>(undefined); // undefined = closed, null = new
+
+  const handleSave = useCallback((data: Omit<Recipe, 'id'> & { id?: string }) => {
+    if (data.id) {
+      updateRecipe(data as Recipe);
+      toast.success('Recipe updated!');
+    } else {
+      addRecipe(data);
+      toast.success('Recipe added!');
+    }
+    setFormRecipe(undefined);
+    setSelectedRecipe(null);
+  }, [addRecipe, updateRecipe]);
+
+  const handleDelete = useCallback(() => {
+    if (selectedRecipe) {
+      deleteRecipe(selectedRecipe.id);
+      toast.success('Recipe deleted.');
+      setSelectedRecipe(null);
+    }
+  }, [selectedRecipe, deleteRecipe]);
+
+  const handleEditFromDetail = useCallback(() => {
+    setFormRecipe(selectedRecipe);
+    setSelectedRecipe(null);
+  }, [selectedRecipe]);
+
+  const tabClass = (v: View) =>
+    `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+      view === v ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-muted'
+    }`;
+
+  const filterClass = (c: Category | 'all') =>
+    `px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+      categoryFilter === c
+        ? c === 'all'
+          ? 'bg-primary text-primary-foreground'
+          : categoryColors[c as Category]
+        : 'bg-secondary text-secondary-foreground hover:bg-muted'
+    }`;
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="relative z-10 min-h-screen">
+      {/* Sticky header */}
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+          <h1 className="font-serif text-xl sm:text-2xl font-bold tracking-tight whitespace-nowrap">
+            My Culinary Journey
+          </h1>
+          <div className="flex items-center gap-2 bg-muted rounded-full p-1">
+            <button className={tabClass('dashboard')} onClick={() => setView('dashboard')}>
+              <BookOpen className="w-4 h-4" /> <span className="hidden sm:inline">Dashboard</span>
+            </button>
+            <button className={tabClass('map')} onClick={() => setView('map')}>
+              <Globe className="w-4 h-4" /> <span className="hidden sm:inline">World Map</span>
+            </button>
+          </div>
+          <button
+            onClick={() => setFormRecipe(null)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Recipe</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {view === 'dashboard' ? (
+          <>
+            {/* Search + Filters */}
+            <div className="space-y-4 mb-6">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  placeholder="Search recipes, countries, ingredients…"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button className={filterClass('all')} onClick={() => setCategoryFilter('all')}>All</button>
+                {CATEGORIES.map(c => (
+                  <button key={c.value} className={filterClass(c.value)} onClick={() => setCategoryFilter(c.value)}>{c.label}</button>
+                ))}
+                <span className="ml-auto text-xs text-muted-foreground">
+                  {stats.total} recipes · {stats.countries} countries
+                </span>
+              </div>
+            </div>
+
+            {/* Recipe grid */}
+            <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+              {filtered.map(r => (
+                <RecipeCard key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />
+              ))}
+            </div>
+            {filtered.length === 0 && (
+              <p className="text-center text-muted-foreground py-20 text-sm">No recipes found. Try adjusting your search or filters.</p>
+            )}
+          </>
+        ) : (
+          <WorldMap recipes={filtered} onSelectRecipe={setSelectedRecipe} />
+        )}
+      </main>
+
+      {/* Modals */}
+      {selectedRecipe && (
+        <RecipeDetail recipe={selectedRecipe} onClose={() => setSelectedRecipe(null)} onEdit={handleEditFromDetail} onDelete={handleDelete} />
+      )}
+      {formRecipe !== undefined && (
+        <RecipeFormModal recipe={formRecipe} onClose={() => setFormRecipe(undefined)} onSave={handleSave} />
+      )}
     </div>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
