@@ -61,7 +61,7 @@ export default function Index() {
       <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
           <h1 className="font-serif text-xl sm:text-2xl font-bold tracking-tight whitespace-nowrap">
-            My Culinary Journey
+            Nom Nom Mon
           </h1>
           <div className="flex items-center gap-2 bg-muted rounded-full p-1">
             <button className={tabClass('dashboard')} onClick={() => setView('dashboard')}>
