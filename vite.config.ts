@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
-  base: './',  // ⚡ important: relative paths for GitHub Pages
+  base: '/recipe-quest-atlas/',  // ⚡ important: relative paths for GitHub Pages
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
