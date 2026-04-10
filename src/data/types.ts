@@ -1,4 +1,4 @@
-export type Category = 'breakfast' | 'mains' | 'dessert' | 'snack';
+export type Category = 'breakfast' | 'starter' | 'mains' | 'dessert' | 'snack';
 
 export interface Ingredient {
   name: string;
@@ -22,10 +22,11 @@ export interface Recipe {
   imageUrl: string;
 }
 
-export const UNITS = ['g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'pinch'] as const;
+export const UNITS = ['g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'pinch', 'unit', 'cup', 'bunch', 'handful', 'clove', 'slice', 'stick'] as const;
 
 export const CATEGORIES: { value: Category; label: string }[] = [
   { value: 'breakfast', label: 'Breakfast' },
+  { value: 'starter', label: 'Starter' },
   { value: 'mains', label: 'Mains' },
   { value: 'dessert', label: 'Dessert' },
   { value: 'snack', label: 'Snack' },
@@ -33,6 +34,7 @@ export const CATEGORIES: { value: Category; label: string }[] = [
 
 export const categoryColors: Record<Category, string> = {
   breakfast: 'bg-cat-breakfast/20 text-cat-breakfast-fg',
+  starter: 'bg-cat-starter/20 text-cat-starter-fg',
   mains: 'bg-cat-mains/20 text-cat-mains-fg',
   dessert: 'bg-cat-dessert/20 text-cat-dessert-fg',
   snack: 'bg-cat-snack/20 text-cat-snack-fg',
@@ -40,6 +42,7 @@ export const categoryColors: Record<Category, string> = {
 
 export const categoryPinColors: Record<Category, string> = {
   breakfast: '#d4952b',
+  starter: '#c49a5c',
   mains: '#c45a3c',
   dessert: '#b07a8a',
   snack: '#7a9a6e',

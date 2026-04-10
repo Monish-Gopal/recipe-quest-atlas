@@ -62,6 +62,8 @@ export default {
         cat: {
           breakfast: "hsl(var(--cat-breakfast))",
           "breakfast-fg": "hsl(var(--cat-breakfast-fg))",
+          starter: "hsl(var(--cat-starter))",
+          "starter-fg": "hsl(var(--cat-starter-fg))",
           mains: "hsl(var(--cat-mains))",
           "mains-fg": "hsl(var(--cat-mains-fg))",
           dessert: "hsl(var(--cat-dessert))",
