@@ -45,7 +45,7 @@ export default function RecipeCard({ recipe, onClick }: Props) {
           {recipe.title}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {country?.flag ?? '🌍'} {recipe.country}
+          {country?.flag ?? '🌍'} {country?.name ?? recipe.country}
         </p>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>Prep {recipe.prepTime}m</span>

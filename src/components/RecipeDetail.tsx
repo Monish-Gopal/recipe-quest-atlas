@@ -61,7 +61,7 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete }: Prop
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-foreground/40 backdrop-blur-sm overflow-y-auto p-4 sm:p-8" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-foreground/40 backdrop-blur-sm overflow-y-auto p-4 sm:p-8">
       <div className="relative w-full max-w-2xl bg-card rounded-xl shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
         {/* Header actions */}
         <div className="absolute top-3 right-3 z-10 flex gap-2">
