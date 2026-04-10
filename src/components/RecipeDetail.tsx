@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Recipe, categoryColors, CATEGORIES } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { getPollinationsUrl } from '@/lib/pollinations';
-import { X, Minus, Plus, Pencil, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, Pencil, Trash2, ImageIcon } from 'lucide-react';
 
 interface Props {
   recipe: Recipe;
@@ -110,11 +110,16 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete }: Prop
             <h3 className="font-serif text-xl font-semibold mb-3">Method</h3>
             <ol className="space-y-4">
               {recipe.instructions.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center mt-0.5">
-                    {i + 1}
-                  </span>
-                  <p className="text-sm leading-relaxed">{step}</p>
+                <li key={i} className="space-y-2">
+                  <div className="flex gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center mt-0.5">
+                      {i + 1}
+                    </span>
+                    <p className="text-sm leading-relaxed">{step}</p>
+                  </div>
+                  {recipe.stepImages?.[i] && (
+                    <StepImage src={recipe.stepImages[i]} alt={`Step ${i + 1}`} />
+                  )}
                 </li>
               ))}
             </ol>
