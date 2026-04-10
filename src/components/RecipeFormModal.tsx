@@ -116,7 +116,7 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
             <div className="space-y-2">
               {form.ingredients.map((ing, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <input placeholder="Ingredient" className={`${inputClass} flex-1`} value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)} />
+                  <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[180px]`} value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)} />
                   <input type="number" step="any" min={0} placeholder="Amt" className={`${inputClass} w-20`} value={ing.amount || ''} onChange={e => updateIngredient(i, 'amount', +e.target.value)} />
                   <select className={`${inputClass} w-20`} value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)}>
                     {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
