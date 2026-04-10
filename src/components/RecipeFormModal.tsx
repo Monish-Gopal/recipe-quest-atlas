@@ -259,8 +259,8 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
 
           {/* Draft review */}
           {draft && (
-            <div className="space-y-4 border border-amber-300 dark:border-amber-600 rounded-lg p-4 bg-amber-50/50 dark:bg-amber-950/20">
-              <div className="flex items-center gap-2 text-sm font-medium text-amber-700 dark:text-amber-400">
+            <div className="space-y-4 border border-yellow-500/50 rounded-lg p-4 bg-yellow-500/5">
+              <div className="flex items-center gap-2 text-sm font-medium text-yellow-700 dark:text-yellow-400">
                 <AlertTriangle className="w-4 h-4" /> AI Draft – Review before saving
               </div>
 
