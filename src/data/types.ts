@@ -20,6 +20,8 @@ export interface Recipe {
   instructions: string[];
   imageMode: 'ai' | 'custom';
   imageUrl: string;
+  generateStepImages?: boolean;
+  stepImages?: Record<number, string>; // step index -> image URL
 }
 
 export const UNITS = ['g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'pinch', 'unit', 'cup', 'bunch', 'handful', 'clove', 'slice', 'stick'] as const;
