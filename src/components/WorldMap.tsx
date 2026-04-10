@@ -5,7 +5,6 @@ import 'leaflet/dist/leaflet.css';
 import { Recipe, categoryPinColors, CATEGORIES } from '@/data/types';
 import { findCountry } from '@/data/countries';
 
-// Fix default marker icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 function createPinIcon(color: string, flag: string) {
@@ -38,8 +37,21 @@ interface Props {
   onSelectRecipe: (recipe: Recipe) => void;
 }
 
+// Group recipes by country coordinates
+function groupByLocation(recipes: Recipe[]) {
+  const groups: Record<string, Recipe[]> = {};
+  for (const r of recipes) {
+    if (r.lat == null || r.lng == null) continue;
+    const key = `${r.lat},${r.lng}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(r);
+  }
+  return Object.values(groups);
+}
+
 export default function WorldMap({ recipes, onSelectRecipe }: Props) {
   const validRecipes = recipes.filter(r => r.lat != null && r.lng != null);
+  const groups = groupByLocation(validRecipes);
 
   return (
     <div className="w-full h-[calc(100vh-140px)] rounded-lg overflow-hidden border border-border">
@@ -49,21 +61,35 @@ export default function WorldMap({ recipes, onSelectRecipe }: Props) {
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <MapBounds recipes={validRecipes} />
-        {validRecipes.map(recipe => {
-          const country = findCountry(recipe.country);
-          const catLabel = CATEGORIES.find(c => c.value === recipe.category)?.label ?? '';
+        {groups.map(group => {
+          const first = group[0];
+          const country = findCountry(first.country);
+          const mainCat = first.category;
           return (
             <Marker
-              key={recipe.id}
-              position={[recipe.lat!, recipe.lng!]}
-              icon={createPinIcon(categoryPinColors[recipe.category], country?.flag ?? '🌍')}
-              eventHandlers={{ click: () => onSelectRecipe(recipe) }}
+              key={`${first.lat},${first.lng}`}
+              position={[first.lat!, first.lng!]}
+              icon={createPinIcon(categoryPinColors[mainCat], country?.flag ?? '🌍')}
             >
               <Popup>
-                <div className="text-sm space-y-1 font-sans">
-                  <strong className="font-serif">{recipe.title}</strong>
-                  <p>{country?.flag} {recipe.country} · {catLabel}</p>
-                  <p className="text-muted-foreground">{recipe.prepTime + recipe.cookTime}m total</p>
+                <div className="text-sm space-y-1 font-sans min-w-[140px]">
+                  <p className="font-medium">{country?.flag} {first.country}</p>
+                  <ul className="space-y-1">
+                    {group.map(r => {
+                      const catLabel = CATEGORIES.find(c => c.value === r.category)?.label ?? '';
+                      return (
+                        <li key={r.id}>
+                          <button
+                            className="text-left w-full hover:text-primary transition-colors"
+                            onClick={() => onSelectRecipe(r)}
+                          >
+                            <strong className="font-serif">{r.title}</strong>
+                            <span className="text-muted-foreground ml-1 text-xs">· {catLabel}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               </Popup>
             </Marker>
