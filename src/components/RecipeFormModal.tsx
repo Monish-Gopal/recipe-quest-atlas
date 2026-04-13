@@ -163,7 +163,7 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-foreground/40 backdrop-blur-sm overflow-y-auto p-4 sm:p-8">
-      <div className="relative w-full max-w-xl bg-card rounded-xl shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-2xl bg-card rounded-xl shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h2 className="font-serif text-xl font-bold">{recipe ? 'Edit Recipe' : 'Add Recipe'}</h2>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors"><X className="w-5 h-5" /></button>
