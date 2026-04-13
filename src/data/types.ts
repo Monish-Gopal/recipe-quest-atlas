@@ -6,6 +6,8 @@ export interface Ingredient {
   unit: string;
 }
 
+export type CookStatus = 'none' | 'cooked' | 'want-to-cook';
+
 export interface Recipe {
   id: string;
   title: string;
@@ -21,7 +23,11 @@ export interface Recipe {
   imageMode: 'ai' | 'custom';
   imageUrl: string;
   generateStepImages?: boolean;
-  stepImages?: Record<number, string>; // step index -> image URL
+  stepImages?: Record<number, string>;
+  favourite?: boolean;
+  cookStatus?: CookStatus;
+  createdAt?: string;
+  cookedAt?: string;
 }
 
 export const UNITS = ['g', 'kg', 'ml', 'l', 'tsp', 'tbsp', 'pinch', 'unit', 'cup', 'bunch', 'handful', 'clove', 'slice', 'stick'] as const;

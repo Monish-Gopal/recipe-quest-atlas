@@ -163,7 +163,7 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-foreground/40 backdrop-blur-sm overflow-y-auto p-4 sm:p-8">
-      <div className="relative w-full max-w-xl bg-card rounded-xl shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-2xl bg-card rounded-xl shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h2 className="font-serif text-xl font-bold">{recipe ? 'Edit Recipe' : 'Add Recipe'}</h2>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-muted transition-colors"><X className="w-5 h-5" /></button>
@@ -257,38 +257,55 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
             </div>
           )}
 
-          {/* Draft review */}
+          {/* Draft review – split view */}
           {draft && (
             <div className="space-y-4 border border-yellow-500/50 rounded-lg p-4 bg-yellow-500/5">
               <div className="flex items-center gap-2 text-sm font-medium text-yellow-700 dark:text-yellow-400">
                 <AlertTriangle className="w-4 h-4" /> AI Draft – Review before saving
               </div>
 
-              <div>
-                <label className={labelClass}>Ingredients</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Left: Original text */}
                 <div className="space-y-2">
-                  {draft.ingredients.map((ing, i) => (
-                    <div key={i} className={`flex gap-2 items-center ${ing.flagged ? 'ring-2 ring-amber-400 rounded-md p-1' : ''}`}>
-                      <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[180px]`} value={ing.name} onChange={e => updateDraftIngredient(i, 'name', e.target.value)} />
-                      <input type="number" step="any" min={0} placeholder="Amt" className={`${inputClass} w-20`} value={ing.amount || ''} onChange={e => updateDraftIngredient(i, 'amount', +e.target.value)} />
-                      <select className={`${inputClass} w-24`} value={ing.unit} onChange={e => updateDraftIngredient(i, 'unit', e.target.value)}>
-                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                      </select>
-                      {ing.flagged && <span className="text-xs text-amber-600" title={ing.flagReason}>⚠️</span>}
-                    </div>
-                  ))}
+                  <label className="block text-xs font-medium text-muted-foreground">Original Text</label>
+                  <div className="bg-muted/50 rounded-md p-3 text-sm whitespace-pre-wrap max-h-[300px] overflow-y-auto border border-border">
+                    {aiText || 'No original text available'}
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className={labelClass}>Steps</label>
-                <div className="space-y-2">
-                  {draft.instructions.map((step, i) => (
-                    <div key={i} className="flex gap-2 items-start">
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-2">{i + 1}</span>
-                      <textarea rows={2} className={`${inputClass} flex-1 resize-none`} value={step} onChange={e => updateDraftStep(i, e.target.value)} />
+                {/* Right: Parsed data */}
+                <div className="space-y-3">
+                  <label className="block text-xs font-medium text-muted-foreground">Parsed Result</label>
+
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Ingredients</label>
+                    <div className="space-y-2">
+                      {draft.ingredients.map((ing, i) => (
+                        <div key={i} className={`flex gap-2 items-center ${ing.flagged ? 'ring-2 ring-amber-400 rounded-md p-1' : ''}`}>
+                          <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[120px]`} value={ing.name} onChange={e => updateDraftIngredient(i, 'name', e.target.value)} />
+                          <input type="number" step="any" min={0} placeholder="Amt" className={`${inputClass} w-16`} value={ing.amount || ''} onChange={e => updateDraftIngredient(i, 'amount', +e.target.value)} />
+                          <select className={`${inputClass} w-20`} value={ing.unit} onChange={e => updateDraftIngredient(i, 'unit', e.target.value)}>
+                            {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                          </select>
+                          {ing.flagged && (
+                            <span className="text-xs text-amber-600 whitespace-nowrap" title={ing.flagReason}>⚠️ {ing.flagReason}</span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Steps</label>
+                    <div className="space-y-2">
+                      {draft.instructions.map((step, i) => (
+                        <div key={i} className="flex gap-2 items-start">
+                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-2">{i + 1}</span>
+                          <textarea rows={2} className={`${inputClass} flex-1 resize-none`} value={step} onChange={e => updateDraftStep(i, e.target.value)} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
