@@ -1,20 +1,30 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { Plus, Search, BookOpen, Globe } from 'lucide-react';
+import { Plus, Search, BookOpen, Globe, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
-import { Recipe, CATEGORIES, Category, categoryColors } from '@/data/types';
+import { Recipe, CATEGORIES, Category, categoryColors, CookStatus } from '@/data/types';
 import RecipeCard from '@/components/RecipeCard';
 import RecipeDetail from '@/components/RecipeDetail';
 import RecipeFormModal from '@/components/RecipeFormModal';
 import WorldMap from '@/components/WorldMap';
+import DashboardInsights from '@/components/DashboardInsights';
 
 type View = 'dashboard' | 'map';
 
 export default function Index() {
-  const { filtered, addRecipe, updateRecipe, deleteRecipe, search, setSearch, categoryFilter, setCategoryFilter, stats } = useRecipes();
+  const {
+    recipes, filtered, addRecipe, updateRecipe, deleteRecipe,
+    toggleFavourite, setCookStatus,
+    search, setSearch, categoryFilter, setCategoryFilter,
+    statusFilter, setStatusFilter,
+    stats,
+  } = useRecipes();
   const [view, setView] = useState<View>('dashboard');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [formRecipe, setFormRecipe] = useState<Recipe | null | undefined>(undefined); // undefined = closed, null = new
+  const [formRecipe, setFormRecipe] = useState<Recipe | null | undefined>(undefined);
+
+  // Keep selectedRecipe in sync with latest data
+  const currentSelected = selectedRecipe ? recipes.find(r => r.id === selectedRecipe.id) ?? null : null;
 
   const handleSave = useCallback((data: Omit<Recipe, 'id'> & { id?: string }) => {
     if (data.id) {
@@ -29,17 +39,17 @@ export default function Index() {
   }, [addRecipe, updateRecipe]);
 
   const handleDelete = useCallback(() => {
-    if (selectedRecipe) {
-      deleteRecipe(selectedRecipe.id);
+    if (currentSelected) {
+      deleteRecipe(currentSelected.id);
       toast.success('Recipe deleted.');
       setSelectedRecipe(null);
     }
-  }, [selectedRecipe, deleteRecipe]);
+  }, [currentSelected, deleteRecipe]);
 
   const handleEditFromDetail = useCallback(() => {
-    setFormRecipe(selectedRecipe);
+    setFormRecipe(currentSelected);
     setSelectedRecipe(null);
-  }, [selectedRecipe]);
+  }, [currentSelected]);
 
   const tabClass = (v: View) =>
     `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -52,6 +62,13 @@ export default function Index() {
         ? c === 'all'
           ? 'bg-primary text-primary-foreground'
           : categoryColors[c as Category]
+        : 'bg-secondary text-secondary-foreground hover:bg-muted'
+    }`;
+
+  const statusBtnClass = (s: typeof statusFilter) =>
+    `flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+      statusFilter === s
+        ? 'bg-primary text-primary-foreground'
         : 'bg-secondary text-secondary-foreground hover:bg-muted'
     }`;
 
@@ -83,6 +100,9 @@ export default function Index() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {view === 'dashboard' ? (
           <>
+            {/* Insights */}
+            <DashboardInsights recipes={recipes} />
+
             {/* Search + Filters */}
             <div className="space-y-4 mb-6">
               <div className="relative max-w-md">
@@ -94,6 +114,7 @@ export default function Index() {
                   onChange={e => setSearch(e.target.value)}
                 />
               </div>
+              {/* Category filters */}
               <div className="flex flex-wrap items-center gap-2">
                 <button className={filterClass('all')} onClick={() => setCategoryFilter('all')}>All</button>
                 {CATEGORIES.map(c => (
@@ -103,12 +124,25 @@ export default function Index() {
                   {stats.total} recipes · {stats.countries} countries
                 </span>
               </div>
+              {/* Status filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button className={statusBtnClass('all')} onClick={() => setStatusFilter('all')}>All</button>
+                <button className={statusBtnClass('favourites')} onClick={() => setStatusFilter('favourites')}>
+                  <Heart className="w-3 h-3" /> Favourites
+                </button>
+                <button className={statusBtnClass('cooked')} onClick={() => setStatusFilter('cooked')}>
+                  <ChefHat className="w-3 h-3" /> Cooked
+                </button>
+                <button className={statusBtnClass('want-to-cook')} onClick={() => setStatusFilter('want-to-cook')}>
+                  <BookmarkPlus className="w-3 h-3" /> Want to Cook
+                </button>
+              </div>
             </div>
 
             {/* Recipe grid */}
             <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
               {filtered.map(r => (
-                <RecipeCard key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} />
+                <RecipeCard key={r.id} recipe={r} onClick={() => setSelectedRecipe(r)} onToggleFavourite={toggleFavourite} />
               ))}
             </div>
             {filtered.length === 0 && (
@@ -121,8 +155,15 @@ export default function Index() {
       </main>
 
       {/* Modals */}
-      {selectedRecipe && (
-        <RecipeDetail recipe={selectedRecipe} onClose={() => setSelectedRecipe(null)} onEdit={handleEditFromDetail} onDelete={handleDelete} />
+      {currentSelected && (
+        <RecipeDetail
+          recipe={currentSelected}
+          onClose={() => setSelectedRecipe(null)}
+          onEdit={handleEditFromDetail}
+          onDelete={handleDelete}
+          onToggleFavourite={toggleFavourite}
+          onSetCookStatus={setCookStatus}
+        />
       )}
       {formRecipe !== undefined && (
         <RecipeFormModal recipe={formRecipe} onClose={() => setFormRecipe(undefined)} onSave={handleSave} />

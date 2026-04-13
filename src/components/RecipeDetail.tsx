@@ -1,14 +1,16 @@
 import { useState, useMemo } from 'react';
-import { Recipe, categoryColors, CATEGORIES } from '@/data/types';
+import { Recipe, categoryColors, CATEGORIES, CookStatus } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { getPollinationsUrl } from '@/lib/pollinations';
-import { X, Minus, Plus, Pencil, Trash2, ImageIcon } from 'lucide-react';
+import { X, Minus, Plus, Pencil, Trash2, ImageIcon, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 
 interface Props {
   recipe: Recipe;
   onClose: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleFavourite: (id: string) => void;
+  onSetCookStatus: (id: string, status: CookStatus) => void;
 }
 
 function smartRound(val: number): string {
@@ -46,7 +48,7 @@ function StepImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-export default function RecipeDetail({ recipe, onClose, onEdit, onDelete }: Props) {
+export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onToggleFavourite, onSetCookStatus }: Props) {
   const [servings, setServings] = useState(recipe.baseServings);
   const country = findCountry(recipe.country);
   const imgSrc = recipe.imageMode === 'ai'
@@ -65,6 +67,15 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete }: Prop
       <div className="relative w-full max-w-2xl bg-card rounded-xl shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
         {/* Header actions */}
         <div className="absolute top-3 right-3 z-10 flex gap-2">
+          <button
+            onClick={() => onToggleFavourite(recipe.id)}
+            className={`p-2 rounded-full backdrop-blur-sm transition-colors ${
+              recipe.favourite ? 'bg-red-500/80 text-white' : 'bg-card/80 hover:bg-card'
+            }`}
+            title={recipe.favourite ? 'Remove favourite' : 'Add favourite'}
+          >
+            <Heart className={`w-4 h-4 ${recipe.favourite ? 'fill-current' : ''}`} />
+          </button>
           <button onClick={onEdit} className="p-2 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card transition-colors" title="Edit">
             <Pencil className="w-4 h-4" />
           </button>
@@ -87,6 +98,30 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete }: Prop
             <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full mb-2 ${categoryColors[recipe.category]}`}>{catLabel}</span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold">{recipe.title}</h2>
             <p className="text-muted-foreground mt-1">{country?.flag ?? '🌍'} {recipe.country}</p>
+          </div>
+
+          {/* Cook status buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => onSetCookStatus(recipe.id, 'cooked')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                recipe.cookStatus === 'cooked'
+                  ? 'bg-green-600 text-white'
+                  : 'bg-secondary text-secondary-foreground hover:bg-muted'
+              }`}
+            >
+              <ChefHat className="w-3.5 h-3.5" /> {recipe.cookStatus === 'cooked' ? 'Cooked ✓' : 'Mark as Cooked'}
+            </button>
+            <button
+              onClick={() => onSetCookStatus(recipe.id, 'want-to-cook')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                recipe.cookStatus === 'want-to-cook'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-secondary text-secondary-foreground hover:bg-muted'
+              }`}
+            >
+              <BookmarkPlus className="w-3.5 h-3.5" /> {recipe.cookStatus === 'want-to-cook' ? 'Want to Cook ✓' : 'Want to Cook'}
+            </button>
           </div>
 
           {/* Time chips */}
