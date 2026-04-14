@@ -150,7 +150,7 @@ export default function Index() {
             )}
           </>
         ) : (
-          <WorldMap recipes={filtered} onSelectRecipe={setSelectedRecipe} />
+          <WorldMap recipes={filtered} allRecipes={recipes} onSelectRecipe={setSelectedRecipe} />
         )}
       </main>
 

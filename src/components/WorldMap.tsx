@@ -127,7 +127,7 @@ function CountryLayer({ recipes, onSelectRecipe }: { recipes: Recipe[]; onSelect
               l.setStyle({ fillOpacity: 0.25, weight: 2 });
             },
             click: () => {
-              const bounds = layer.getBounds();
+              const bounds = (layer as any).getBounds();
               map.fitBounds(bounds, { padding: [50, 50], maxZoom: 6 });
 
               // Show popup with recipe list
