@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Recipe, Category, CATEGORIES, UNITS, Ingredient } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { parseRecipeText, isVisualStep, getStepImageUrl } from '@/lib/pollinationsText';
+import { supabase } from '@/integrations/supabase/client';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
-import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Link } from 'lucide-react';
 
 interface Props {
   recipe?: Recipe | null;
@@ -20,7 +21,7 @@ const empty: Omit<Recipe, 'id'> = {
   generateStepImages: false,
 };
 
-type Mode = 'manual' | 'ai';
+type Mode = 'manual' | 'ai' | 'url';
 
 interface DraftIngredient extends Ingredient {
   flagged?: boolean;
@@ -39,6 +40,8 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
   const [aiParsing, setAiParsing] = useState(false);
   const [aiError, setAiError] = useState('');
   const [draft, setDraft] = useState<DraftState | null>(null);
+  const [importUrl, setImportUrl] = useState('');
+  const [urlFetching, setUrlFetching] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
