@@ -270,20 +270,27 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
 
           {/* Mode toggle for new recipes */}
           {!recipe && !draft && (
-            <div className="flex gap-2 p-1 bg-muted rounded-lg">
+            <div className="flex gap-1 p-1 bg-muted rounded-lg">
               <button
                 type="button"
                 onClick={() => setMode('manual')}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${mode === 'manual' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
+                className={`flex-1 py-2 px-2 rounded-md text-sm font-medium transition-all ${mode === 'manual' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
               >
-                Manual Entry
+                Manual
               </button>
               <button
                 type="button"
                 onClick={() => setMode('ai')}
-                className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${mode === 'ai' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
+                className={`flex-1 py-2 px-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-1 ${mode === 'ai' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
               >
-                <Sparkles className="w-3.5 h-3.5" /> Quick Create with AI
+                <Sparkles className="w-3.5 h-3.5" /> AI Parse
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('url')}
+                className={`flex-1 py-2 px-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-1 ${mode === 'url' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
+              >
+                <Link className="w-3.5 h-3.5" /> From URL
               </button>
             </div>
           )}
