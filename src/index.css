@@ -100,3 +100,14 @@ body::before {
   z-index: 1;
   font-family: 'DM Sans', sans-serif;
 }
+
+.leaflet-tooltip-custom {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
