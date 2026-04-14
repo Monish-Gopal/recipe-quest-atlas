@@ -322,7 +322,36 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
             </div>
           )}
 
-          {/* Draft review – split view */}
+          {/* URL Import */}
+          {mode === 'url' && !recipe && !draft && (
+            <div className="space-y-3">
+              <label className={labelClass}>Paste a recipe URL</label>
+              <input
+                type="url"
+                className={inputClass}
+                placeholder="https://www.example.com/recipe/..."
+                value={importUrl}
+                onChange={e => setImportUrl(e.target.value)}
+              />
+              {aiError && <p className="text-sm text-destructive">{aiError}</p>}
+              <button
+                type="button"
+                onClick={handleUrlImport}
+                disabled={urlFetching || !importUrl.trim()}
+                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {urlFetching ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Fetching & parsing…</>
+                ) : (
+                  <><Link className="w-4 h-4" /> Import Recipe</>
+                )}
+              </button>
+              <p className="text-xs text-muted-foreground">
+                Works with most recipe websites. The recipe will be extracted and shown for review before saving.
+              </p>
+            </div>
+          )}
+
           {draft && (
             <div className="space-y-4 border border-yellow-500/50 rounded-lg p-4 bg-yellow-500/5">
               <div className="flex items-center gap-2 text-sm font-medium text-yellow-700 dark:text-yellow-400">
