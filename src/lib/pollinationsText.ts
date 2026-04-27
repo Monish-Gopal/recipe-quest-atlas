@@ -22,25 +22,50 @@ ${rawText}`;
   if (!res.ok) throw new Error('AI parsing failed');
   
   const text = await res.text();
-  
-  // Extract JSON from response
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) throw new Error('Could not parse AI response');
-  
-  const parsed = JSON.parse(jsonMatch[0]) as ParsedRecipe;
-  
-  // Validate structure
-  if (!Array.isArray(parsed.ingredients) || !Array.isArray(parsed.instructions)) {
+
+  // Extract JSON from response (strip markdown fences if present)
+  let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  const jsonStart = cleaned.search(/[\{\[]/);
+  const jsonEnd = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+  if (jsonStart === -1 || jsonEnd === -1) throw new Error('Could not parse AI response');
+  cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
+
+  let parsed: any;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    parsed = JSON.parse(cleaned.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']').replace(/[\x00-\x1F\x7F]/g, ''));
+  }
+
+  // Unwrap common nesting patterns
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+    if (parsed.recipe && typeof parsed.recipe === 'object') parsed = parsed.recipe;
+    if (parsed.data && typeof parsed.data === 'object') parsed = parsed.data;
+  }
+
+  // Find ingredients/instructions arrays under varied key names
+  const ingredientsRaw =
+    parsed.ingredients ?? parsed.Ingredients ?? parsed.ingredient_list ?? [];
+  const instructionsRaw =
+    parsed.instructions ?? parsed.Instructions ?? parsed.steps ?? parsed.method ?? parsed.directions ?? [];
+
+  if (!Array.isArray(ingredientsRaw) || !Array.isArray(instructionsRaw)) {
+    console.error('Unexpected AI response shape:', parsed);
     throw new Error('Invalid AI response structure');
   }
-  
+
   return {
-    ingredients: parsed.ingredients.map(i => ({
-      name: String(i.name || ''),
-      amount: Number(i.amount) || 0,
-      unit: String(i.unit || 'unit'),
-    })),
-    instructions: parsed.instructions.map(s => String(s)),
+    ingredients: ingredientsRaw.map((i: any) => {
+      if (typeof i === 'string') return { name: i, amount: 0, unit: 'unit' };
+      return {
+        name: String(i.name ?? i.ingredient ?? i.item ?? ''),
+        amount: Number(i.amount ?? i.quantity ?? i.qty) || 0,
+        unit: String(i.unit ?? i.units ?? 'unit'),
+      };
+    }),
+    instructions: instructionsRaw.map((s: any) =>
+      typeof s === 'string' ? s : String(s.text ?? s.step ?? s.instruction ?? s)
+    ),
   };
 }
 
