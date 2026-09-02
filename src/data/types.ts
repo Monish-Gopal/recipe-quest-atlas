@@ -22,8 +22,6 @@ export interface Recipe {
   instructions: string[];
   imageMode: 'ai' | 'custom';
   imageUrl: string;
-  generateStepImages?: boolean;
-  stepImages?: Record<number, string>;
   favourite?: boolean;
   cookStatus?: CookStatus;
   createdAt?: string;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Recipe, Category, CATEGORIES, UNITS, Ingredient } from '@/data/types';
 import { findCountry } from '@/data/countries';
-import { parseRecipeText, isVisualStep, getStepImageUrl } from '@/lib/pollinationsText';
+import { parseRecipeText } from '@/lib/pollinationsText';
 import { supabase } from '@/integrations/supabase/client';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
 import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Link } from 'lucide-react';
@@ -18,7 +18,6 @@ const empty: Omit<Recipe, 'id'> = {
   ingredients: [{ name: '', amount: 0, unit: 'g' }],
   instructions: [''],
   imageMode: 'ai', imageUrl: '',
-  generateStepImages: false,
 };
 
 type Mode = 'manual' | 'ai' | 'url';

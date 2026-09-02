@@ -69,29 +69,3 @@ ${rawText}`;
   };
 }
 
-// Determine if a cooking step is visually meaningful
-const VISUAL_KEYWORDS = [
-  'chop', 'slice', 'dice', 'cut', 'mince', 'julienne', 'peel',
-  'fry', 'sauté', 'saute', 'sear', 'brown', 'caramelize',
-  'boil', 'simmer', 'steam', 'blanch', 'poach',
-  'bake', 'roast', 'grill', 'broil', 'toast',
-  'mix', 'stir', 'whisk', 'fold', 'blend', 'puree', 'grind',
-  'knead', 'roll', 'shape', 'form', 'flatten',
-  'plate', 'arrange', 'garnish', 'drizzle', 'sprinkle',
-  'marinate', 'coat', 'dredge', 'bread',
-  'pour', 'layer', 'stuff', 'fill', 'wrap',
-];
-
-export function isVisualStep(step: string): boolean {
-  const lower = step.toLowerCase();
-  return VISUAL_KEYWORDS.some(kw => lower.includes(kw));
-}
-
-export function stepToImagePrompt(step: string, recipeTitle: string): string {
-  return `${step}, cooking step for ${recipeTitle}, close-up professional food photography, bright kitchen, warm natural lighting, editorial style`;
-}
-
-export function getStepImageUrl(step: string, recipeTitle: string): string {
-  const prompt = encodeURIComponent(stepToImagePrompt(step, recipeTitle));
-  return `https://image.pollinations.ai/prompt/${prompt}?width=512&height=340&nologo=true`;
-}
