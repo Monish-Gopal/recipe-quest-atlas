@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Plus, Search, BookOpen, Globe, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
+import { Plus, Search, BookOpen, Globe, Heart, ChefHat, BookmarkPlus, Download, Upload } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { Recipe, CATEGORIES, Category, categoryColors, CookStatus } from '@/data/types';
 import RecipeCard from '@/components/RecipeCard';
@@ -15,6 +15,7 @@ export default function Index() {
   const {
     recipes, filtered, addRecipe, updateRecipe, deleteRecipe,
     toggleFavourite, setCookStatus,
+    exportRecipes, importRecipes,
     search, setSearch, categoryFilter, setCategoryFilter,
     statusFilter, setStatusFilter,
     stats,
@@ -22,6 +23,8 @@ export default function Index() {
   const [view, setView] = useState<View>('dashboard');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [formRecipe, setFormRecipe] = useState<Recipe | null | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   // Keep selectedRecipe in sync with latest data
   const currentSelected = selectedRecipe ? recipes.find(r => r.id === selectedRecipe.id) ?? null : null;
@@ -88,12 +91,41 @@ export default function Index() {
               <Globe className="w-4 h-4" /> <span className="hidden sm:inline">World Map</span>
             </button>
           </div>
-          <button
-            onClick={() => setFormRecipe(null)}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Recipe</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportRecipes}
+              title="Download a backup of all recipes"
+              aria-label="Export recipes backup"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium hover:bg-muted transition-colors"
+            >
+              <Download className="w-4 h-4" /> <span className="hidden lg:inline">Export</span>
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              title="Restore recipes from a backup file"
+              aria-label="Import recipes backup"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium hover:bg-muted transition-colors"
+            >
+              <Upload className="w-4 h-4" /> <span className="hidden lg:inline">Import</span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) importRecipes(file);
+                e.target.value = '';
+              }}
+            />
+            <button
+              onClick={() => setFormRecipe(null)}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity shadow-sm"
+            >
+              <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Add Recipe</span>
+            </button>
+          </div>
         </div>
       </header>
 

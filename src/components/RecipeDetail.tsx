@@ -24,29 +24,6 @@ function smartRound(val: number): string {
   return r % 1 === 0 ? r.toString() : r.toFixed(2).replace(/0+$/, '');
 }
 
-function StepImage({ src, alt }: { src: string; alt: string }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-
-  if (error) return null;
-
-  return (
-    <div className="ml-10 rounded-lg overflow-hidden bg-muted relative">
-      {!loaded && (
-        <div className="flex items-center gap-2 px-4 py-8 text-sm text-muted-foreground justify-center">
-          <ImageIcon className="w-4 h-4 animate-pulse" /> Generating image…
-        </div>
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={`w-full max-h-48 object-cover transition-opacity ${loaded ? 'opacity-100' : 'opacity-0 absolute inset-0'}`}
-        onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
-      />
-    </div>
-  );
-}
 
 export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onToggleFavourite, onSetCookStatus }: Props) {
   const [servings, setServings] = useState(recipe.baseServings);
@@ -169,16 +146,11 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onTogg
             <h3 className="font-serif text-xl font-semibold mb-3">Method</h3>
             <ol className="space-y-4">
               {recipe.instructions.map((step, i) => (
-                <li key={i} className="space-y-2">
-                  <div className="flex gap-3">
-                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center mt-0.5">
-                      {i + 1}
-                    </span>
-                    <p className="text-sm leading-relaxed">{step}</p>
-                  </div>
-                  {recipe.stepImages?.[i] && (
-                    <StepImage src={recipe.stepImages[i]} alt={`Step ${i + 1}`} />
-                  )}
+                <li key={i} className="flex gap-3">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center mt-0.5">
+                    {i + 1}
+                  </span>
+                  <p className="text-sm leading-relaxed">{step}</p>
                 </li>
               ))}
             </ol>
