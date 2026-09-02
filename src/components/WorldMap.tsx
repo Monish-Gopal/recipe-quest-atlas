@@ -211,10 +211,23 @@ export default function WorldMap({ recipes, allRecipes, onSelectRecipe }: Props)
       </div>
 
       <div className="w-full h-[calc(100vh-200px)] rounded-lg overflow-hidden border border-border">
-        <MapContainer center={[20, 0]} zoom={2} className="w-full h-full" scrollWheelZoom>
+        <MapContainer
+          center={[20, 0]}
+          zoom={2}
+          minZoom={2}
+          className="w-full h-full"
+          scrollWheelZoom
+          maxBounds={[
+            [-90, -180],
+            [90, 180],
+          ]}
+          maxBoundsViscosity={1.0}
+          worldCopyJump={false}
+        >
           <TileLayer
-            attribution='&copy; <a href="https://carto.com">CARTO</a>'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            noWrap
           />
           <CountryLayer recipes={allRecipes} onSelectRecipe={onSelectRecipe} />
           <MapBounds recipes={validRecipes} />
