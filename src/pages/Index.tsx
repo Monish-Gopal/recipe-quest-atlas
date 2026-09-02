@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Plus, Search, BookOpen, Globe, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
+import { Plus, Search, BookOpen, Globe, Heart, ChefHat, BookmarkPlus, Download, Upload } from 'lucide-react';
 import { useRecipes } from '@/hooks/useRecipes';
 import { Recipe, CATEGORIES, Category, categoryColors, CookStatus } from '@/data/types';
 import RecipeCard from '@/components/RecipeCard';
@@ -15,6 +15,7 @@ export default function Index() {
   const {
     recipes, filtered, addRecipe, updateRecipe, deleteRecipe,
     toggleFavourite, setCookStatus,
+    exportRecipes, importRecipes,
     search, setSearch, categoryFilter, setCategoryFilter,
     statusFilter, setStatusFilter,
     stats,
@@ -22,6 +23,8 @@ export default function Index() {
   const [view, setView] = useState<View>('dashboard');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [formRecipe, setFormRecipe] = useState<Recipe | null | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   // Keep selectedRecipe in sync with latest data
   const currentSelected = selectedRecipe ? recipes.find(r => r.id === selectedRecipe.id) ?? null : null;
