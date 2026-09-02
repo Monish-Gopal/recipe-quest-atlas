@@ -202,17 +202,7 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
       return;
     }
     setAiError('');
-    if (form.generateStepImages && form.title) {
-      const stepImages: Record<number, string> = {};
-      form.instructions.forEach((step, i) => {
-        if (step.trim() && isVisualStep(step)) {
-          stepImages[i] = getStepImageUrl(step, form.title);
-        }
-      });
-      onSave({ ...form, stepImages });
-    } else {
-      onSave({ ...form, stepImages: undefined });
-    }
+    onSave(form);
   };
 
   const inputClass = "w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring";
@@ -463,23 +453,8 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
             </>
           )}
 
-          {/* Step image toggle */}
-          {!draft && (
-            <div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.generateStepImages ?? false}
-                  onChange={e => set('generateStepImages', e.target.checked)}
-                  className="rounded border-input"
-                />
-                Generate visual cooking steps (AI images)
-              </label>
-              <p className="text-xs text-muted-foreground mt-1 ml-6">
-                Only visually meaningful steps (chopping, frying, plating, etc.) will get images.
-              </p>
-            </div>
-          )}
+
+
 
           {/* Photo */}
           {!draft && (
