@@ -4,6 +4,7 @@ import { findCountry } from '@/data/countries';
 import { parseRecipeText } from '@/lib/pollinationsText';
 import { supabase } from '@/integrations/supabase/client';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
+import AmountInput from '@/components/AmountInput';
 import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Link } from 'lucide-react';
 
 interface Props {
@@ -366,7 +367,7 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
                       {draft.ingredients.map((ing, i) => (
                         <div key={i} className={`flex gap-2 items-center ${ing.flagged ? 'ring-2 ring-amber-400 rounded-md p-1' : ''}`}>
                           <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[120px]`} value={ing.name} onChange={e => updateDraftIngredient(i, 'name', e.target.value)} />
-                          <input type="number" step="any" min={0} placeholder="Amt" className={`${inputClass} w-16`} value={ing.amount || ''} onChange={e => updateDraftIngredient(i, 'amount', +e.target.value)} />
+                          <AmountInput className={`${inputClass} w-20`} value={ing.amount} onChange={v => updateDraftIngredient(i, 'amount', v)} />
                           <select className={`${inputClass} w-20`} value={ing.unit} onChange={e => updateDraftIngredient(i, 'unit', e.target.value)}>
                             {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                           </select>
@@ -413,7 +414,7 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
                   {form.ingredients.map((ing, i) => (
                     <div key={i} className="flex gap-2 items-center">
                       <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[180px]`} value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)} />
-                      <input type="number" step="any" min={0} placeholder="Amt" className={`${inputClass} w-20`} value={ing.amount || ''} onChange={e => updateIngredient(i, 'amount', +e.target.value)} />
+                      <AmountInput className={`${inputClass} w-24`} value={ing.amount} onChange={v => updateIngredient(i, 'amount', v)} />
                       <select className={`${inputClass} w-24`} value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)}>
                         {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                       </select>

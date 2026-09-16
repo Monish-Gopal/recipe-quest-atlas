@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Recipe, categoryColors, CATEGORIES, CookStatus } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { getPollinationsUrl } from '@/lib/pollinations';
+import { formatAmount } from '@/lib/fractions';
 import { X, Minus, Plus, Pencil, Trash2, ImageIcon, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 
 interface Props {
@@ -14,14 +15,7 @@ interface Props {
 }
 
 function smartRound(val: number): string {
-  if (val >= 10) return Math.round(val).toString();
-  if (val >= 1) {
-    const r = Math.round(val * 4) / 4;
-    return r % 1 === 0 ? r.toString() : r.toFixed(r % 0.5 === 0 ? 1 : 2);
-  }
-  const r = Math.round(val * 4) / 4;
-  if (r === 0) return '⅛';
-  return r % 1 === 0 ? r.toString() : r.toFixed(2).replace(/0+$/, '');
+  return formatAmount(val);
 }
 
 
