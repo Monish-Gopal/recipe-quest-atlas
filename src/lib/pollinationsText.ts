@@ -1,4 +1,19 @@
 import { Ingredient } from '@/data/types';
+import { parseAmount } from '@/lib/fractions';
+
+const LOWER_WORDS = new Set(['and', 'or', 'of', 'with', 'in', 'the', 'a', 'to', 'for']);
+
+/** "cashew nuts" -> "Cashew Nuts"; leaves already-capitalised text alone. */
+function titleCase(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .map((word, idx) => {
+      if (idx > 0 && LOWER_WORDS.has(word.toLowerCase())) return word.toLowerCase();
+      return word.replace(/^([a-z])/, c => c.toUpperCase());
+    })
+    .join(' ');
+}
 
 interface ParsedRecipe {
   ingredients: Ingredient[];
@@ -56,10 +71,13 @@ ${rawText}`;
 
   return {
     ingredients: ingredientsRaw.map((i: any) => {
-      if (typeof i === 'string') return { name: i, amount: 0, unit: 'unit' };
+      if (typeof i === 'string') return { name: titleCase(i), amount: 0, unit: 'unit' };
+      const rawAmount = i.amount ?? i.quantity ?? i.qty;
       return {
-        name: String(i.name ?? i.ingredient ?? i.item ?? ''),
-        amount: Number(i.amount ?? i.quantity ?? i.qty) || 0,
+        name: titleCase(String(i.name ?? i.ingredient ?? i.item ?? '')),
+        amount: typeof rawAmount === 'number'
+          ? rawAmount
+          : parseAmount(String(rawAmount ?? '')),
         unit: String(i.unit ?? i.units ?? 'unit'),
       };
     }),
