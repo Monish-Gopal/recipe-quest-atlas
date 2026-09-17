@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Recipe, categoryColors, CATEGORIES, CookStatus } from '@/data/types';
 import { findCountry } from '@/data/countries';
-import { getPollinationsUrl } from '@/lib/pollinations';
 import { formatAmount } from '@/lib/fractions';
 import { X, Minus, Plus, Pencil, Trash2, ImageIcon, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 
