@@ -120,60 +120,23 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
     }
   };
 
-  const handleUrlImport = async () => {
-    if (!importUrl.trim()) return;
-    setUrlFetching(true);
-    setAiError('');
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoError('');
+    setPhotoLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('fetch-recipe-url', {
-        body: { url: importUrl.trim() },
-      });
-      if (error) throw new Error(error.message);
-      if (!data?.success) throw new Error(data?.error || 'Failed to fetch URL');
-
-      let textToParse = '';
-
-      // If we got JSON-LD structured data, convert it
-      if (data.jsonLd) {
-        const ld = data.jsonLd;
-        if (ld.name) set('title', ld.name);
-
-        // Build text from JSON-LD for AI parsing
-        const ingredients = Array.isArray(ld.recipeIngredient) ? ld.recipeIngredient.join('\n') : '';
-        const instructions = Array.isArray(ld.recipeInstructions)
-          ? ld.recipeInstructions.map((s: any) => typeof s === 'string' ? s : s.text || '').join('\n')
-          : '';
-        textToParse = `${ingredients}\n\n${instructions}`;
-      } else {
-        textToParse = data.text || '';
-      }
-
-      if (!textToParse.trim()) throw new Error('Could not extract recipe content from this URL');
-
-      // Set the AI text and parse it
-      setAiText(textToParse);
-      const cleaned = cleanText(textToParse);
-      const parsed = await parseRecipeText(cleaned);
-
-      const flagged: DraftIngredient[] = parsed.ingredients.map(i => {
-        const flags: Partial<DraftIngredient> = {};
-        if (i.amount === 0 || !i.amount) {
-          flags.flagged = true;
-          flags.flagReason = 'Amount was unclear – please verify';
-        }
-        return { ...i, ...flags };
-      });
-
-      setDraft({
-        ingredients: flagged.length > 0 ? flagged : [{ name: '', amount: 0, unit: 'g' }],
-        instructions: parsed.instructions.length > 0 ? parsed.instructions : [''],
-      });
-    } catch (err: any) {
-      setAiError(err.message || 'Failed to import from URL. Try pasting the recipe text manually.');
+      const dataUrl = await fileToResizedDataUrl(file);
+      set('imageUrl', dataUrl);
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Could not use that photo.');
     } finally {
-      setUrlFetching(false);
+      setPhotoLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
+
+
 
   const confirmDraft = () => {
     if (!draft) return;
