@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Recipe, Category, CATEGORIES, UNITS, Ingredient } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { parseRecipeText } from '@/lib/pollinationsText';
-import { supabase } from '@/integrations/supabase/client';
+import { fileToResizedDataUrl } from '@/lib/imageUpload';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
 import AmountInput from '@/components/AmountInput';
-import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Link } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon } from 'lucide-react';
 
 interface Props {
   recipe?: Recipe | null;
@@ -18,10 +18,10 @@ const empty: Omit<Recipe, 'id'> = {
   prepTime: 0, cookTime: 0, baseServings: 1,
   ingredients: [{ name: '', amount: 0, unit: 'g' }],
   instructions: [''],
-  imageMode: 'ai', imageUrl: '',
+  imageUrl: '',
 };
 
-type Mode = 'manual' | 'ai' | 'url';
+type Mode = 'manual' | 'ai';
 
 interface DraftIngredient extends Ingredient {
   flagged?: boolean;
@@ -40,8 +40,9 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
   const [aiParsing, setAiParsing] = useState(false);
   const [aiError, setAiError] = useState('');
   const [draft, setDraft] = useState<DraftState | null>(null);
-  const [importUrl, setImportUrl] = useState('');
-  const [urlFetching, setUrlFetching] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -119,60 +120,23 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
     }
   };
 
-  const handleUrlImport = async () => {
-    if (!importUrl.trim()) return;
-    setUrlFetching(true);
-    setAiError('');
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoError('');
+    setPhotoLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('fetch-recipe-url', {
-        body: { url: importUrl.trim() },
-      });
-      if (error) throw new Error(error.message);
-      if (!data?.success) throw new Error(data?.error || 'Failed to fetch URL');
-
-      let textToParse = '';
-
-      // If we got JSON-LD structured data, convert it
-      if (data.jsonLd) {
-        const ld = data.jsonLd;
-        if (ld.name) set('title', ld.name);
-
-        // Build text from JSON-LD for AI parsing
-        const ingredients = Array.isArray(ld.recipeIngredient) ? ld.recipeIngredient.join('\n') : '';
-        const instructions = Array.isArray(ld.recipeInstructions)
-          ? ld.recipeInstructions.map((s: any) => typeof s === 'string' ? s : s.text || '').join('\n')
-          : '';
-        textToParse = `${ingredients}\n\n${instructions}`;
-      } else {
-        textToParse = data.text || '';
-      }
-
-      if (!textToParse.trim()) throw new Error('Could not extract recipe content from this URL');
-
-      // Set the AI text and parse it
-      setAiText(textToParse);
-      const cleaned = cleanText(textToParse);
-      const parsed = await parseRecipeText(cleaned);
-
-      const flagged: DraftIngredient[] = parsed.ingredients.map(i => {
-        const flags: Partial<DraftIngredient> = {};
-        if (i.amount === 0 || !i.amount) {
-          flags.flagged = true;
-          flags.flagReason = 'Amount was unclear – please verify';
-        }
-        return { ...i, ...flags };
-      });
-
-      setDraft({
-        ingredients: flagged.length > 0 ? flagged : [{ name: '', amount: 0, unit: 'g' }],
-        instructions: parsed.instructions.length > 0 ? parsed.instructions : [''],
-      });
-    } catch (err: any) {
-      setAiError(err.message || 'Failed to import from URL. Try pasting the recipe text manually.');
+      const dataUrl = await fileToResizedDataUrl(file);
+      set('imageUrl', dataUrl);
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Could not use that photo.');
     } finally {
-      setUrlFetching(false);
+      setPhotoLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
+
+
 
   const confirmDraft = () => {
     if (!draft) return;
@@ -275,13 +239,6 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
               >
                 <Sparkles className="w-3.5 h-3.5" /> AI Parse
               </button>
-              <button
-                type="button"
-                onClick={() => setMode('url')}
-                className={`flex-1 py-2 px-2 rounded-md text-sm font-medium transition-all flex items-center justify-center gap-1 ${mode === 'url' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
-              >
-                <Link className="w-3.5 h-3.5" /> From URL
-              </button>
             </div>
           )}
 
@@ -312,35 +269,6 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
             </div>
           )}
 
-          {/* URL Import */}
-          {mode === 'url' && !recipe && !draft && (
-            <div className="space-y-3">
-              <label className={labelClass}>Paste a recipe URL</label>
-              <input
-                type="url"
-                className={inputClass}
-                placeholder="https://www.example.com/recipe/..."
-                value={importUrl}
-                onChange={e => setImportUrl(e.target.value)}
-              />
-              {aiError && <p className="text-sm text-destructive">{aiError}</p>}
-              <button
-                type="button"
-                onClick={handleUrlImport}
-                disabled={urlFetching || !importUrl.trim()}
-                className="w-full py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {urlFetching ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Fetching & parsing…</>
-                ) : (
-                  <><Link className="w-4 h-4" /> Import Recipe</>
-                )}
-              </button>
-              <p className="text-xs text-muted-foreground">
-                Works with most recipe websites. The recipe will be extracted and shown for review before saving.
-              </p>
-            </div>
-          )}
 
           {draft && (
             <div className="space-y-4 border border-yellow-500/50 rounded-lg p-4 bg-yellow-500/5">
@@ -460,13 +388,49 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
           {/* Photo */}
           {!draft && (
             <div>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.imageMode === 'ai'} onChange={e => set('imageMode', e.target.checked ? 'ai' : 'custom')} className="rounded border-input" />
-                Generate AI photo automatically
-              </label>
-              {form.imageMode === 'custom' && (
-                <input className={`${inputClass} mt-2`} placeholder="Custom image URL" value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)} />
-              )}
+              <label className={labelClass}>Photo</label>
+              <div className="flex items-center gap-4">
+                <div className="w-28 h-20 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                  {form.imageUrl ? (
+                    <img src={form.imageUrl} alt="Recipe photo preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={photoLoading}
+                      className="flex items-center gap-2 px-3 py-2 rounded-md bg-secondary text-secondary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      {photoLoading
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding…</>
+                        : <><Upload className="w-4 h-4" /> {form.imageUrl ? 'Replace photo' : 'Upload photo'}</>}
+                    </button>
+                    {form.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => set('imageUrl', '')}
+                        className="p-2 rounded-md text-muted-foreground hover:text-destructive transition-colors"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPG or PNG. Optional.</p>
+                </div>
+              </div>
+              {photoError && <p className="text-sm text-destructive mt-2">{photoError}</p>}
             </div>
           )}
 

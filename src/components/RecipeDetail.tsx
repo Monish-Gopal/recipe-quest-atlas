@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Recipe, categoryColors, CATEGORIES, CookStatus } from '@/data/types';
 import { findCountry } from '@/data/countries';
-import { getPollinationsUrl } from '@/lib/pollinations';
 import { formatAmount } from '@/lib/fractions';
 import { X, Minus, Plus, Pencil, Trash2, ImageIcon, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 
@@ -22,9 +21,7 @@ function smartRound(val: number): string {
 export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onToggleFavourite, onSetCookStatus }: Props) {
   const [servings, setServings] = useState(recipe.baseServings);
   const country = findCountry(recipe.country);
-  const imgSrc = recipe.imageMode === 'ai'
-    ? getPollinationsUrl(recipe.title, recipe.country)
-    : recipe.imageUrl;
+  const imgSrc = recipe.imageUrl;
   const catLabel = CATEGORIES.find(c => c.value === recipe.category)?.label ?? '';
   const ratio = servings / recipe.baseServings;
 
@@ -59,8 +56,12 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onTogg
         </div>
 
         {/* Hero image */}
-        <div className="aspect-video overflow-hidden">
-          <img src={imgSrc} alt={recipe.title} className="w-full h-full object-cover" />
+        <div className="aspect-video overflow-hidden bg-muted flex items-center justify-center">
+          {imgSrc ? (
+            <img src={imgSrc} alt={recipe.title} className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon className="w-10 h-10 text-muted-foreground" />
+          )}
         </div>
 
         <div className="p-6 space-y-6">
