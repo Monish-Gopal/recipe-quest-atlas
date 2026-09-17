@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Recipe, categoryColors, CATEGORIES } from '@/data/types';
 import { findCountry } from '@/data/countries';
-import { getPollinationsUrl } from '@/lib/pollinations';
-import { Heart } from 'lucide-react';
+import { Heart, ImageIcon } from 'lucide-react';
 
 interface Props {
   recipe: Recipe;
@@ -13,9 +12,7 @@ interface Props {
 export default function RecipeCard({ recipe, onClick, onToggleFavourite }: Props) {
   const [imgLoaded, setImgLoaded] = useState(false);
   const country = findCountry(recipe.country);
-  const imgSrc = recipe.imageMode === 'ai'
-    ? getPollinationsUrl(recipe.title, recipe.country)
-    : recipe.imageUrl;
+  const imgSrc = recipe.imageUrl;
   const catLabel = CATEGORIES.find(c => c.value === recipe.category)?.label ?? recipe.category;
   const totalTime = recipe.prepTime + recipe.cookTime;
 
