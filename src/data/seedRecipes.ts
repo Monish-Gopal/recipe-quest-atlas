@@ -29,7 +29,6 @@ export const SEED_RECIPES: Recipe[] = [
       'Cook in greased ring moulds on low heat for 10 minutes per side, covered.',
       'Serve immediately with maple syrup and fresh berries.',
     ],
-    imageMode: 'ai',
     imageUrl: '',
   },
   {
@@ -63,7 +62,6 @@ export const SEED_RECIPES: Recipe[] = [
       'Cover and simmer on low heat for 45 minutes until chicken is tender.',
       'Garnish with fresh coriander and serve with couscous.',
     ],
-    imageMode: 'ai',
     imageUrl: '',
   },
   {
@@ -96,7 +94,6 @@ export const SEED_RECIPES: Recipe[] = [
       'Bake 15–18 minutes until pastry is crisp and custard is blistered.',
       'Cool slightly, dust with cinnamon, and serve warm.',
     ],
-    imageMode: 'ai',
     imageUrl: '',
   },
   {
@@ -128,7 +125,6 @@ export const SEED_RECIPES: Recipe[] = [
       'Bake on a lined tray for 10–12 minutes until edges are golden.',
       'Cool on a wire rack. Store in an airtight tin.',
     ],
-    imageMode: 'ai',
     imageUrl: '',
   },
 ];
