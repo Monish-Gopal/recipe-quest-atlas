@@ -37,19 +37,22 @@ export default function RecipeCard({ recipe, onClick, onToggleFavourite }: Props
         onClick={onClick}
         className="w-full text-left focus:outline-none focus:ring-2 focus:ring-ring"
       >
-        <div className="relative aspect-[3/2] overflow-hidden">
-          {!imgLoaded && <div className="absolute inset-0 skeleton-shimmer" />}
-          <img
-            src={imgSrc}
-            alt={recipe.title}
-            className={`w-full h-full object-cover transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            onLoad={() => setImgLoaded(true)}
-            loading="lazy"
-          />
-          {recipe.imageMode === 'ai' && (
-            <span className="absolute top-2 left-12 text-[10px] font-medium px-2 py-0.5 rounded-full bg-foreground/60 text-primary-foreground backdrop-blur-sm">
-              AI Photo
-            </span>
+        <div className="relative aspect-[3/2] overflow-hidden bg-muted">
+          {imgSrc ? (
+            <>
+              {!imgLoaded && <div className="absolute inset-0 skeleton-shimmer" />}
+              <img
+                src={imgSrc}
+                alt={recipe.title}
+                className={`w-full h-full object-cover transition-opacity duration-500 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setImgLoaded(true)}
+                loading="lazy"
+              />
+            </>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+              <ImageIcon className="w-8 h-8" />
+            </div>
           )}
           <span className={`absolute top-2 left-2 text-xs font-medium px-2.5 py-1 rounded-full ${categoryColors[recipe.category]}`}>
             {catLabel}

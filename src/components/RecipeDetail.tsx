@@ -21,9 +21,7 @@ function smartRound(val: number): string {
 export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onToggleFavourite, onSetCookStatus }: Props) {
   const [servings, setServings] = useState(recipe.baseServings);
   const country = findCountry(recipe.country);
-  const imgSrc = recipe.imageMode === 'ai'
-    ? getPollinationsUrl(recipe.title, recipe.country)
-    : recipe.imageUrl;
+  const imgSrc = recipe.imageUrl;
   const catLabel = CATEGORIES.find(c => c.value === recipe.category)?.label ?? '';
   const ratio = servings / recipe.baseServings;
 
