@@ -388,13 +388,49 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
           {/* Photo */}
           {!draft && (
             <div>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={form.imageMode === 'ai'} onChange={e => set('imageMode', e.target.checked ? 'ai' : 'custom')} className="rounded border-input" />
-                Generate AI photo automatically
-              </label>
-              {form.imageMode === 'custom' && (
-                <input className={`${inputClass} mt-2`} placeholder="Custom image URL" value={form.imageUrl} onChange={e => set('imageUrl', e.target.value)} />
-              )}
+              <label className={labelClass}>Photo</label>
+              <div className="flex items-center gap-4">
+                <div className="w-28 h-20 rounded-md overflow-hidden bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                  {form.imageUrl ? (
+                    <img src={form.imageUrl} alt="Recipe photo preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={photoLoading}
+                      className="flex items-center gap-2 px-3 py-2 rounded-md bg-secondary text-secondary-foreground text-sm font-medium hover:opacity-90 disabled:opacity-50"
+                    >
+                      {photoLoading
+                        ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding…</>
+                        : <><Upload className="w-4 h-4" /> {form.imageUrl ? 'Replace photo' : 'Upload photo'}</>}
+                    </button>
+                    {form.imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => set('imageUrl', '')}
+                        className="p-2 rounded-md text-muted-foreground hover:text-destructive transition-colors"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPG or PNG. Optional.</p>
+                </div>
+              </div>
+              {photoError && <p className="text-sm text-destructive mt-2">{photoError}</p>}
             </div>
           )}
 
