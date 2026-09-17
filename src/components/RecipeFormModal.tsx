@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Recipe, Category, CATEGORIES, UNITS, Ingredient } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { parseRecipeText } from '@/lib/pollinationsText';
-import { supabase } from '@/integrations/supabase/client';
+import { fileToResizedDataUrl } from '@/lib/imageUpload';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
 import AmountInput from '@/components/AmountInput';
-import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Link } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon } from 'lucide-react';
 
 interface Props {
   recipe?: Recipe | null;
@@ -18,10 +18,10 @@ const empty: Omit<Recipe, 'id'> = {
   prepTime: 0, cookTime: 0, baseServings: 1,
   ingredients: [{ name: '', amount: 0, unit: 'g' }],
   instructions: [''],
-  imageMode: 'ai', imageUrl: '',
+  imageUrl: '',
 };
 
-type Mode = 'manual' | 'ai' | 'url';
+type Mode = 'manual' | 'ai';
 
 interface DraftIngredient extends Ingredient {
   flagged?: boolean;
@@ -40,8 +40,9 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
   const [aiParsing, setAiParsing] = useState(false);
   const [aiError, setAiError] = useState('');
   const [draft, setDraft] = useState<DraftState | null>(null);
-  const [importUrl, setImportUrl] = useState('');
-  const [urlFetching, setUrlFetching] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
