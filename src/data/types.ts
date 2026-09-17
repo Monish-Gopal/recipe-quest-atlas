@@ -20,7 +20,9 @@ export interface Recipe {
   baseServings: number;
   ingredients: Ingredient[];
   instructions: string[];
-  imageMode: 'ai' | 'custom';
+  /** Legacy field kept so older saved recipes still load. */
+  imageMode?: string;
+  /** Uploaded photo as a data URL, or empty when no photo was added. */
   imageUrl: string;
   favourite?: boolean;
   cookStatus?: CookStatus;
