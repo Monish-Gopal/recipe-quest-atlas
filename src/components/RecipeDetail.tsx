@@ -56,8 +56,12 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onTogg
         </div>
 
         {/* Hero image */}
-        <div className="aspect-video overflow-hidden">
-          <img src={imgSrc} alt={recipe.title} className="w-full h-full object-cover" />
+        <div className="aspect-video overflow-hidden bg-muted flex items-center justify-center">
+          {imgSrc ? (
+            <img src={imgSrc} alt={recipe.title} className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon className="w-10 h-10 text-muted-foreground" />
+          )}
         </div>
 
         <div className="p-6 space-y-6">
