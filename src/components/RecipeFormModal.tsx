@@ -78,6 +78,18 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
   const addStep = () => set('instructions', [...form.instructions, '']);
   const removeStep = (i: number) => set('instructions', form.instructions.filter((_, j) => j !== i));
 
+  // Drag-and-drop step reordering
+  const [dragStepIndex, setDragStepIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const moveStep = (from: number, to: number) => {
+    if (from === to) return;
+    const steps = [...form.instructions];
+    const [moved] = steps.splice(from, 1);
+    steps.splice(to, 0, moved);
+    set('instructions', steps);
+  };
+
   // Clean text before AI parsing
   const cleanText = (text: string) =>
     text
