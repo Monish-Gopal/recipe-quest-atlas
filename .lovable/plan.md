@@ -1,13 +1,19 @@
+# Remove "API KEY REQUIRED" watermark from World Map
 
+## What's happening
+The map's picture tiles come from CARTO, which used to be free with no key. CARTO recently changed their policy — their tiles now show an "API KEY REQUIRED" watermark unless you pay for an account. I confirmed this live on your preview.
 
-## Plan: Expand countries list to all 195 UN-recognized countries
+## Fix
+Switch the map's background tiles in `src/components/WorldMap.tsx` to **OpenStreetMap's free standard tiles** (`tile.openstreetmap.org`) — completely free, no key, no watermark, unlimited for a personal hobby app.
 
-### What changes
-**Single file edit:** `src/data/countries.ts`
+Everything else on the map stays exactly as it is:
+- Your recipe pins with flags and category colours
+- Green country highlighting and click popups
+- The no-repeat / clamped panning fixes
 
-Replace the current 76-entry `COUNTRIES` array with a complete list of all 195 UN-recognized sovereign states (193 UN members + 2 observer states: Vatican City and Palestine). The existing non-sovereign entry "Scotland" will be kept as a bonus entry since recipes may reference it. "Taiwan" will also be kept.
+## Trade-off to be aware of
+The OpenStreetMap style looks slightly different from the CARTO "Voyager" style you liked (a bit more detail/colour). Free lookalike styles without a key are no longer available — CARTO was the last one. OpenStreetMap is the reliable free choice.
 
-Each entry maintains the same `{ name, flag, lat, lng }` structure. Approximately 120 new countries will be added, covering all missing nations from every continent (e.g., Andorra, Angola, Antigua and Barbuda, Armenia, Azerbaijan, Bahamas, Bahrain, Barbados, Belarus, Belize, Benin, Bhutan, Bolivia, Bosnia and Herzegovina, Botswana, Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cameroon, Central African Republic, Chad, Comoros, Congo, Costa Rica, Côte d'Ivoire, Cyprus, Djibouti, Dominica, Dominican Republic, East Timor, Ecuador, El Salvador, Equatorial Guinea, Eritrea, Estonia, Eswatini, Fiji, Gabon, Gambia, Georgia, Grenada, Guatemala, Guinea, Guinea-Bissau, Guyana, Haiti, Honduras, Kazakhstan, Kiribati, Kosovo, Kuwait, Kyrgyzstan, Laos, Latvia, Lesotho, Liberia, Liechtenstein, Lithuania, Luxembourg, Madagascar, Malawi, Maldives, Mali, Malta, Marshall Islands, Mauritania, Mauritius, Micronesia, Moldova, Monaco, Mongolia, Montenegro, Mozambique, Myanmar, Namibia, Nauru, Nicaragua, Niger, North Korea, North Macedonia, Oman, Palau, Palestine, Panama, Papua New Guinea, Paraguay, Qatar, Rwanda, Saint Kitts and Nevis, Saint Lucia, Saint Vincent and the Grenadines, Samoa, San Marino, São Tomé and Príncipe, Serbia, Seychelles, Sierra Leone, Slovakia, Slovenia, Solomon Islands, Somalia, South Sudan, Sudan, Suriname, Tajikistan, Tanzania, Togo, Tonga, Trinidad and Tobago, Turkmenistan, Tuvalu, Uganda, United Arab Emirates, Uruguay, Uzbekistan, Vanuatu, Vatican City, Yemen, Zambia, Zimbabwe).
-
-The `findCountry` function and `CountryData` interface remain unchanged. No other files need editing.
-
+## Technical details
+- Replace the `TileLayer` URL with `https://tile.openstreetmap.org/{z}/{x}/{y}.png`, update attribution, keep `noWrap`, `maxBounds`, `maxBoundsViscosity`, `worldCopyJump`.
+- Verify in the preview that no watermark text appears on any tile.
