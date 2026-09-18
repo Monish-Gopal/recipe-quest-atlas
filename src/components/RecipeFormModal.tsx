@@ -376,7 +376,21 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
                 <label className={labelClass}>Method</label>
                 <div className="space-y-2">
                   {form.instructions.map((step, i) => (
-                    <div key={i} className="flex gap-2 items-start">
+                    <div
+                      key={i}
+                      onDragOver={e => { e.preventDefault(); if (dragStepIndex !== null && dragStepIndex !== i) setDragOverIndex(i); }}
+                      onDrop={e => { e.preventDefault(); if (dragStepIndex !== null) moveStep(dragStepIndex, i); setDragStepIndex(null); setDragOverIndex(null); }}
+                      onDragEnd={() => { setDragStepIndex(null); setDragOverIndex(null); }}
+                      className={`flex gap-2 items-start rounded-md transition-all ${dragOverIndex === i && dragStepIndex !== i ? 'ring-2 ring-primary/50 bg-primary/5' : ''} ${dragStepIndex === i ? 'opacity-50' : ''}`}
+                    >
+                      <span
+                        draggable
+                        onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragStepIndex(i); }}
+                        className="flex-shrink-0 mt-2 p-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none"
+                        title="Drag to reorder"
+                      >
+                        <GripVertical className="w-4 h-4" />
+                      </span>
                       <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-2">{i + 1}</span>
                       <textarea rows={2} className={`${inputClass} flex-1 resize-none`} value={step} onChange={e => updateStep(i, e.target.value)} />
                       {form.instructions.length > 1 && (
