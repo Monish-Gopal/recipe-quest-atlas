@@ -5,7 +5,7 @@ import { parseRecipeText } from '@/lib/pollinationsText';
 import { fileToResizedDataUrl } from '@/lib/imageUpload';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
 import AmountInput from '@/components/AmountInput';
-import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon, GripVertical } from 'lucide-react';
 
 interface Props {
   recipe?: Recipe | null;
