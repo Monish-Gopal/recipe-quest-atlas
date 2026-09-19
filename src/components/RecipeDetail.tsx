@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Recipe, categoryColors, CATEGORIES, CookStatus } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { formatAmount } from '@/lib/fractions';
+import { parseMethod } from '@/lib/methodSections';
 import { X, Minus, Plus, Pencil, Trash2, ImageIcon, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 
 interface Props {
@@ -139,16 +140,27 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onTogg
           {/* Method */}
           <div>
             <h3 className="font-serif text-xl font-semibold mb-3">Method</h3>
-            <ol className="space-y-4">
-              {recipe.instructions.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center mt-0.5">
-                    {i + 1}
-                  </span>
-                  <p className="text-sm leading-relaxed">{step}</p>
-                </li>
+            <div className="space-y-6">
+              {parseMethod(recipe.instructions).map((section, si) => (
+                <div key={si}>
+                  {section.title && (
+                    <h4 className="font-serif text-base font-semibold text-primary border-b border-border pb-1 mb-3">
+                      {section.title}
+                    </h4>
+                  )}
+                  <ol className="space-y-4">
+                    {section.steps.map((step, i) => (
+                      <li key={i} className="flex gap-3">
+                        <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center mt-0.5">
+                          {i + 1}
+                        </span>
+                        <p className="text-sm leading-relaxed">{step.text}</p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </div>
       </div>
