@@ -5,7 +5,8 @@ import { parseRecipeText } from '@/lib/pollinationsText';
 import { fileToResizedDataUrl } from '@/lib/imageUpload';
 import CountryAutocomplete from '@/components/CountryAutocomplete';
 import AmountInput from '@/components/AmountInput';
-import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon, GripVertical } from 'lucide-react';
+import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon, GripVertical, Heading } from 'lucide-react';
+import { isSectionTitle, toSectionTitle, SECTION_PREFIX } from '@/lib/methodSections';
 
 interface Props {
   recipe?: Recipe | null;
@@ -375,35 +376,65 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
               <div>
                 <label className={labelClass}>Method</label>
                 <div className="space-y-2">
-                  {form.instructions.map((step, i) => (
-                    <div
-                      key={i}
-                      onDragOver={e => { e.preventDefault(); if (dragStepIndex !== null && dragStepIndex !== i) setDragOverIndex(i); }}
-                      onDrop={e => { e.preventDefault(); if (dragStepIndex !== null) moveStep(dragStepIndex, i); setDragStepIndex(null); setDragOverIndex(null); }}
-                      onDragEnd={() => { setDragStepIndex(null); setDragOverIndex(null); }}
-                      className={`flex gap-2 items-start rounded-md transition-all ${dragOverIndex === i && dragStepIndex !== i ? 'ring-2 ring-primary/50 bg-primary/5' : ''} ${dragStepIndex === i ? 'opacity-50' : ''}`}
-                    >
-                      <span
-                        draggable
-                        onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragStepIndex(i); }}
-                        className="flex-shrink-0 mt-2 p-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none"
-                        title="Drag to reorder"
+                  {form.instructions.map((step, i) => {
+                    const isSection = isSectionTitle(step);
+                    // Number only real steps, so numbers stay correct across sections
+                    const stepNum = form.instructions.slice(0, i + 1).filter(s => !isSectionTitle(s)).length;
+                    return (
+                      <div
+                        key={i}
+                        onDragOver={e => { e.preventDefault(); if (dragStepIndex !== null && dragStepIndex !== i) setDragOverIndex(i); }}
+                        onDrop={e => { e.preventDefault(); if (dragStepIndex !== null) moveStep(dragStepIndex, i); setDragStepIndex(null); setDragOverIndex(null); }}
+                        onDragEnd={() => { setDragStepIndex(null); setDragOverIndex(null); }}
+                        className={`flex gap-2 items-start rounded-md transition-all ${dragOverIndex === i && dragStepIndex !== i ? 'ring-2 ring-primary/50 bg-primary/5' : ''} ${dragStepIndex === i ? 'opacity-50' : ''}`}
                       >
-                        <GripVertical className="w-4 h-4" />
-                      </span>
-                      <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-2">{i + 1}</span>
-                      <textarea rows={2} className={`${inputClass} flex-1 resize-none`} value={step} onChange={e => updateStep(i, e.target.value)} />
-                      {form.instructions.length > 1 && (
-                        <button type="button" onClick={() => removeStep(i)} className="p-1 mt-2 text-muted-foreground hover:text-destructive transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                        <span
+                          draggable
+                          onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragStepIndex(i); }}
+                          className="flex-shrink-0 mt-2 p-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none"
+                          title="Drag to reorder"
+                        >
+                          <GripVertical className="w-4 h-4" />
+                        </span>
+                        {isSection ? (
+                          <>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-xs font-bold flex items-center justify-center mt-2" title="Section heading">
+                              <Heading className="w-3 h-3" />
+                            </span>
+                            <input
+                              className={`${inputClass} flex-1 font-serif font-semibold`}
+                              placeholder="e.g. For the Rice"
+                              value={step.trimStart().slice(SECTION_PREFIX.length)}
+                              onChange={e => updateStep(i, toSectionTitle(e.target.value))}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-2">{stepNum}</span>
+                            <textarea rows={2} className={`${inputClass} flex-1 resize-none`} value={step} onChange={e => updateStep(i, e.target.value)} />
+                          </>
+                        )}
+                        {form.instructions.length > 1 && (
+                          <button type="button" onClick={() => removeStep(i)} className="p-1 mt-2 text-muted-foreground hover:text-destructive transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <button type="button" onClick={addStep} className="mt-2 text-sm text-primary hover:underline flex items-center gap-1">
-                  <Plus className="w-3.5 h-3.5" /> Add step
-                </button>
+                <div className="mt-2 flex gap-4">
+                  <button type="button" onClick={addStep} className="text-sm text-primary hover:underline flex items-center gap-1">
+                    <Plus className="w-3.5 h-3.5" /> Add step
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => set('instructions', [...form.instructions, toSectionTitle('')])}
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Heading className="w-3.5 h-3.5" /> Add section heading
+                  </button>
+                </div>
               </div>
             </>
           )}
