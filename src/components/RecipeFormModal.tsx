@@ -180,7 +180,11 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
       return;
     }
     setAiError('');
-    onSave(form);
+    // Drop empty steps and empty section headings before saving
+    const instructions = form.instructions.filter(s =>
+      isSectionTitle(s) ? s.trimStart().slice(SECTION_PREFIX.length).trim().length > 0 : s.trim().length > 0
+    );
+    onSave({ ...form, instructions: instructions.length > 0 ? instructions : [''] });
   };
 
   const inputClass = "w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring";
