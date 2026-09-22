@@ -1,5 +1,7 @@
 import { Ingredient } from '@/data/types';
 import { parseAmount } from '@/lib/fractions';
+import { createIngredientSection } from '@/lib/ingredientSections';
+import { toSectionTitle } from '@/lib/methodSections';
 
 const LOWER_WORDS = new Set(['and', 'or', 'of', 'with', 'in', 'the', 'a', 'to', 'for']);
 
