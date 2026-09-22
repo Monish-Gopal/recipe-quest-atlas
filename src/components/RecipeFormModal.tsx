@@ -7,6 +7,7 @@ import CountryAutocomplete from '@/components/CountryAutocomplete';
 import AmountInput from '@/components/AmountInput';
 import { X, Plus, Trash2, Sparkles, Loader2, AlertTriangle, Check, Upload, ImageIcon, GripVertical, Heading } from 'lucide-react';
 import { isSectionTitle, toSectionTitle, SECTION_PREFIX } from '@/lib/methodSections';
+import { createIngredientSection, isIngredientSection } from '@/lib/ingredientSections';
 
 interface Props {
   recipe?: Recipe | null;
@@ -69,7 +70,19 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
   };
 
   const addIngredient = () => set('ingredients', [...form.ingredients, { name: '', amount: 0, unit: 'g' }]);
+  const addIngredientSection = () => set('ingredients', [...form.ingredients, createIngredientSection()]);
   const removeIngredient = (i: number) => set('ingredients', form.ingredients.filter((_, j) => j !== i));
+
+  const [dragIngredientIndex, setDragIngredientIndex] = useState<number | null>(null);
+  const [dragIngredientOverIndex, setDragIngredientOverIndex] = useState<number | null>(null);
+
+  const moveIngredient = (from: number, to: number) => {
+    if (from === to) return;
+    const ingredients = [...form.ingredients];
+    const [moved] = ingredients.splice(from, 1);
+    ingredients.splice(to, 0, moved);
+    set('ingredients', ingredients);
+  };
 
   const updateStep = (i: number, val: string) => {
     const steps = [...form.instructions];
@@ -180,11 +193,16 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
       return;
     }
     setAiError('');
-    // Drop empty steps and empty section headings before saving
+    // Drop empty ingredient rows/headings, steps, and method headings before saving
+    const ingredients = form.ingredients.filter(ingredient => ingredient.name.trim().length > 0);
     const instructions = form.instructions.filter(s =>
       isSectionTitle(s) ? s.trimStart().slice(SECTION_PREFIX.length).trim().length > 0 : s.trim().length > 0
     );
-    onSave({ ...form, instructions: instructions.length > 0 ? instructions : [''] });
+    onSave({
+      ...form,
+      ingredients: ingredients.length > 0 ? ingredients : [{ name: '', amount: 0, unit: 'g' }],
+      instructions: instructions.length > 0 ? instructions : [''],
+    });
   };
 
   const inputClass = "w-full px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring";
@@ -356,24 +374,62 @@ export default function RecipeFormModal({ recipe, onSave, onClose }: Props) {
               <div>
                 <label className={labelClass}>Ingredients</label>
                 <div className="space-y-2">
-                  {form.ingredients.map((ing, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[180px]`} value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)} />
-                      <AmountInput className={`${inputClass} w-24`} value={ing.amount} onChange={v => updateIngredient(i, 'amount', v)} />
-                      <select className={`${inputClass} w-24`} value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)}>
-                        {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
-                      </select>
-                      {form.ingredients.length > 1 && (
-                        <button type="button" onClick={() => removeIngredient(i)} className="p-1 text-muted-foreground hover:text-destructive transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                  {form.ingredients.map((ing, i) => {
+                    const isSection = isIngredientSection(ing);
+                    return (
+                      <div
+                        key={i}
+                        onDragOver={e => { e.preventDefault(); if (dragIngredientIndex !== null && dragIngredientIndex !== i) setDragIngredientOverIndex(i); }}
+                        onDrop={e => { e.preventDefault(); if (dragIngredientIndex !== null) moveIngredient(dragIngredientIndex, i); setDragIngredientIndex(null); setDragIngredientOverIndex(null); }}
+                        onDragEnd={() => { setDragIngredientIndex(null); setDragIngredientOverIndex(null); }}
+                        className={`flex gap-2 items-center rounded-md transition-all ${dragIngredientOverIndex === i && dragIngredientIndex !== i ? 'ring-2 ring-primary/50 bg-primary/5' : ''} ${dragIngredientIndex === i ? 'opacity-50' : ''}`}
+                      >
+                        <span
+                          draggable
+                          onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; setDragIngredientIndex(i); }}
+                          className="flex-shrink-0 p-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none"
+                          title="Drag to reorder"
+                        >
+                          <GripVertical className="w-4 h-4" />
+                        </span>
+                        {isSection ? (
+                          <>
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-secondary text-secondary-foreground text-xs font-bold flex items-center justify-center" title="Section heading">
+                              <Heading className="w-3 h-3" />
+                            </span>
+                            <input
+                              className={`${inputClass} flex-1 font-serif font-semibold`}
+                              placeholder="e.g. For the Sauce"
+                              value={ing.name}
+                              onChange={e => updateIngredient(i, 'name', e.target.value)}
+                            />
+                          </>
+                        ) : (
+                          <>
+                            <input placeholder="Ingredient" className={`${inputClass} flex-1 min-w-[140px]`} value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)} />
+                            <AmountInput className={`${inputClass} w-24`} value={ing.amount} onChange={v => updateIngredient(i, 'amount', v)} />
+                            <select className={`${inputClass} w-24`} value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)}>
+                              {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                            </select>
+                          </>
+                        )}
+                        {form.ingredients.length > 1 && (
+                          <button type="button" onClick={() => removeIngredient(i)} className="p-1 text-muted-foreground hover:text-destructive transition-colors" title={isSection ? 'Remove section heading' : 'Remove ingredient'}>
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <button type="button" onClick={addIngredient} className="mt-2 text-sm text-primary hover:underline flex items-center gap-1">
-                  <Plus className="w-3.5 h-3.5" /> Add ingredient
-                </button>
+                <div className="mt-2 flex gap-4">
+                  <button type="button" onClick={addIngredient} className="text-sm text-primary hover:underline flex items-center gap-1">
+                    <Plus className="w-3.5 h-3.5" /> Add ingredient
+                  </button>
+                  <button type="button" onClick={addIngredientSection} className="text-sm text-primary hover:underline flex items-center gap-1">
+                    <Heading className="w-3.5 h-3.5" /> Add section heading
+                  </button>
+                </div>
               </div>
 
               {/* Method */}

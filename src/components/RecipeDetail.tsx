@@ -3,6 +3,7 @@ import { Recipe, categoryColors, CATEGORIES, CookStatus } from '@/data/types';
 import { findCountry } from '@/data/countries';
 import { formatAmount } from '@/lib/fractions';
 import { parseMethod } from '@/lib/methodSections';
+import { isIngredientSection, parseIngredients } from '@/lib/ingredientSections';
 import { X, Minus, Plus, Pencil, Trash2, ImageIcon, Heart, ChefHat, BookmarkPlus } from 'lucide-react';
 
 interface Props {
@@ -27,7 +28,10 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onTogg
   const ratio = servings / recipe.baseServings;
 
   const scaledIngredients = useMemo(
-    () => recipe.ingredients.map(i => ({ ...i, scaled: smartRound(i.amount * ratio) })),
+    () => recipe.ingredients.map(i => ({
+      ...i,
+      scaled: isIngredientSection(i) ? '' : smartRound(i.amount * ratio),
+    })),
     [recipe.ingredients, ratio]
   );
 
@@ -127,14 +131,25 @@ export default function RecipeDetail({ recipe, onClose, onEdit, onDelete, onTogg
           {/* Ingredients */}
           <div>
             <h3 className="font-serif text-xl font-semibold mb-3">Ingredients</h3>
-            <ul className="space-y-2">
-              {scaledIngredients.map((ing, i) => (
-                <li key={i} className="flex justify-between text-sm py-1 border-b border-border last:border-0">
-                  <span>{ing.name}</span>
-                  <span className="text-primary font-medium">{ing.scaled} {ing.unit}</span>
-                </li>
+            <div className="space-y-5">
+              {parseIngredients(scaledIngredients).map((section, sectionIndex) => (
+                <div key={sectionIndex}>
+                  {section.title && (
+                    <h4 className="font-serif text-base font-semibold text-primary border-b border-border pb-1 mb-2">
+                      {section.title}
+                    </h4>
+                  )}
+                  <ul className="space-y-2">
+                    {section.ingredients.map((ing, ingredientIndex) => (
+                      <li key={ingredientIndex} className="flex justify-between gap-4 text-sm py-1 border-b border-border last:border-0">
+                        <span>{ing.name}</span>
+                        <span className="text-primary font-medium whitespace-nowrap">{ing.scaled} {ing.unit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
           {/* Method */}
