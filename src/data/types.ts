@@ -4,6 +4,8 @@ export interface Ingredient {
   name: string;
   amount: number;
   unit: string;
+  /** Marks this row as a component heading rather than a measured ingredient. */
+  isSection?: boolean;
 }
 
 export type CookStatus = 'none' | 'cooked' | 'want-to-cook';
