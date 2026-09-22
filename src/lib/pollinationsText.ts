@@ -62,11 +62,54 @@ ${rawText}`;
     if (parsed.data && typeof parsed.data === 'object') parsed = parsed.data;
   }
 
-  // Find ingredients/instructions arrays under varied key names
-  const ingredientsRaw =
-    parsed.ingredients ?? parsed.Ingredients ?? parsed.ingredient_list ?? [];
-  const instructionsRaw =
-    parsed.instructions ?? parsed.Instructions ?? parsed.steps ?? parsed.method ?? parsed.directions ?? [];
+  const mapIngredient = (i: any): Ingredient => {
+    if (typeof i === 'string') return { name: titleCase(i), amount: 0, unit: 'unit' };
+    const rawAmount = i.amount ?? i.quantity ?? i.qty;
+    return {
+      name: titleCase(String(i.name ?? i.ingredient ?? i.item ?? '')),
+      amount: typeof rawAmount === 'number' ? rawAmount : parseAmount(String(rawAmount ?? '')),
+      unit: String(i.unit ?? i.units ?? 'unit'),
+    };
+  };
+  const mapStep = (s: any): string =>
+    typeof s === 'string' ? s : String(s.text ?? s.step ?? s.instruction ?? s);
+
+  const pickIngredients = (o: any) =>
+    o?.ingredients ?? o?.Ingredients ?? o?.ingredient_list ?? [];
+  const pickInstructions = (o: any) =>
+    o?.instructions ?? o?.Instructions ?? o?.steps ?? o?.method ?? o?.directions ?? [];
+
+  // Multi-component recipes: each component contributes a heading row/step.
+  const componentsRaw =
+    parsed.components ?? parsed.parts ?? parsed.sections ?? parsed.Components;
+
+  if (Array.isArray(componentsRaw) && componentsRaw.length > 0) {
+    const ingredients: Ingredient[] = [];
+    const instructions: string[] = [];
+    const multiple = componentsRaw.length > 1;
+
+    componentsRaw.forEach((component: any) => {
+      const ing = pickIngredients(component);
+      const steps = pickInstructions(component);
+      if (!Array.isArray(ing) && !Array.isArray(steps)) return;
+
+      const title = String(component?.title ?? component?.name ?? '').trim();
+      if (multiple && title) {
+        ingredients.push(createIngredientSection(titleCase(title)));
+        instructions.push(toSectionTitle(titleCase(title)));
+      }
+      if (Array.isArray(ing)) ingredients.push(...ing.map(mapIngredient));
+      if (Array.isArray(steps)) instructions.push(...steps.map(mapStep));
+    });
+
+    if (ingredients.length > 0 || instructions.length > 0) {
+      return { ingredients, instructions };
+    }
+  }
+
+  // Single-component / legacy shape
+  const ingredientsRaw = pickIngredients(parsed);
+  const instructionsRaw = pickInstructions(parsed);
 
   if (!Array.isArray(ingredientsRaw) || !Array.isArray(instructionsRaw)) {
     console.error('Unexpected AI response shape:', parsed);
@@ -74,20 +117,8 @@ ${rawText}`;
   }
 
   return {
-    ingredients: ingredientsRaw.map((i: any) => {
-      if (typeof i === 'string') return { name: titleCase(i), amount: 0, unit: 'unit' };
-      const rawAmount = i.amount ?? i.quantity ?? i.qty;
-      return {
-        name: titleCase(String(i.name ?? i.ingredient ?? i.item ?? '')),
-        amount: typeof rawAmount === 'number'
-          ? rawAmount
-          : parseAmount(String(rawAmount ?? '')),
-        unit: String(i.unit ?? i.units ?? 'unit'),
-      };
-    }),
-    instructions: instructionsRaw.map((s: any) =>
-      typeof s === 'string' ? s : String(s.text ?? s.step ?? s.instruction ?? s)
-    ),
+    ingredients: ingredientsRaw.map(mapIngredient),
+    instructions: instructionsRaw.map(mapStep),
   };
 }
 
