@@ -21,12 +21,16 @@ interface ParsedRecipe {
 }
 
 export async function parseRecipeText(rawText: string): Promise<ParsedRecipe> {
-  const prompt = `You are a recipe parser. Given the following recipe text, extract:
-1. A list of ingredients with name, amount (number), and unit (one of: g, kg, ml, l, tsp, tbsp, pinch, unit, cup, bunch, handful, clove, slice, stick). If no unit matches, use "unit".
-2. A list of method steps as clean, grammatical sentences.
+  const prompt = `You are a recipe parser. The text may describe ONE dish or SEVERAL components/parts (e.g. "Peri Peri Chicken", "Spiced Rice", "Garlic Mayo"), each with its own Ingredients and Method.
+
+Extract every component, in the order given. For each component:
+- "title": the component name (short, e.g. "Peri Peri Chicken"). Use null only if the text has a single unnamed component.
+- "ingredients": name, amount (number, convert fractions like 1/2 to 0.5), and unit (one of: g, kg, ml, l, tsp, tbsp, pinch, unit, cup, bunch, handful, clove, slice, stick). If no unit matches, use "unit".
+- "instructions": method steps as clean, grammatical sentences. Never include the component name as a step.
+Ignore emoji, headings like "Ingredients"/"Method", and commentary/tip paragraphs that are not steps.
 
 Return ONLY valid JSON in this exact format, no other text:
-{"ingredients":[{"name":"...","amount":0,"unit":"..."}],"instructions":["Step 1...","Step 2..."]}
+{"components":[{"title":"...","ingredients":[{"name":"...","amount":0,"unit":"..."}],"instructions":["Step 1...","Step 2..."]}]}
 
 Recipe text:
 ${rawText}`;
