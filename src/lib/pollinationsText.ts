@@ -50,10 +50,8 @@ ${rawText}`;
 
   const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?json=true&model=openai`;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('AI parsing failed');
-  
-  const text = await res.text();
+  const text = await fetchAiJson(url);
+
 
   // Extract JSON from response (strip markdown fences if present)
   let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
