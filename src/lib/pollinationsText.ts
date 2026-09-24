@@ -2,27 +2,38 @@ import { Ingredient } from '@/data/types';
 import { parseAmount } from '@/lib/fractions';
 import { createIngredientSection } from '@/lib/ingredientSections';
 import { toSectionTitle } from '@/lib/methodSections';
-
-const LOWER_WORDS = new Set(['and', 'or', 'of', 'with', 'in', 'the', 'a', 'to', 'for']);
-
-/** "cashew nuts" -> "Cashew Nuts"; leaves already-capitalised text alone. */
-function titleCase(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((word, idx) => {
-      if (idx > 0 && LOWER_WORDS.has(word.toLowerCase())) return word.toLowerCase();
-      return word.replace(/^([a-z])/, c => c.toUpperCase());
-    })
-    .join(' ');
-}
+import { parseStructuredRecipe, titleCase } from '@/lib/localRecipeParser';
 
 interface ParsedRecipe {
   ingredients: Ingredient[];
   instructions: string[];
 }
 
+async function fetchAiJson(url: string): Promise<string> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 25000);
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`AI service error ${res.status}`);
+      return await res.text();
+    } catch (err) {
+      lastError = err;
+      await new Promise(r => setTimeout(r, 800 * (attempt + 1)));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('AI parsing failed');
+}
+
 export async function parseRecipeText(rawText: string): Promise<ParsedRecipe> {
+  // Structured pastes (Component / Ingredients: / Method:) parse locally and
+  // reliably, without depending on the external AI service.
+  const local = parseStructuredRecipe(rawText);
+  if (local) return local;
+
+
   const prompt = `You are a recipe parser. The text may describe ONE dish or SEVERAL components/parts (e.g. "Peri Peri Chicken", "Spiced Rice", "Garlic Mayo"), each with its own Ingredients and Method.
 
 Extract every component, in the order given. For each component:
@@ -39,10 +50,8 @@ ${rawText}`;
 
   const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?json=true&model=openai`;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('AI parsing failed');
-  
-  const text = await res.text();
+  const text = await fetchAiJson(url);
+
 
   // Extract JSON from response (strip markdown fences if present)
   let cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
